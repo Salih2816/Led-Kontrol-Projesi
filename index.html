@@ -1,91 +1,26 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>NodeMCU LED Kontrol</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body {
-      background: linear-gradient(135deg, #1e3c72, #2a5298);
-      font-family: Arial, sans-serif;
-      text-align: center;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-    }
-
-    h1 {
-      margin-top: 40px;
-    }
-
-    .container {
-      margin-top: 60px;
-    }
-
-    button {
-      width: 220px;
-      padding: 18px;
-      margin: 15px;
-      font-size: 20px;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .on {
-      background-color: #2ecc71;
-    }
-
-    .off {
-      background-color: #e74c3c;
-    }
-
-    button:active {
-      transform: scale(0.95);
-    }
-
-    .status {
-      margin-top: 30px;
-      font-size: 18px;
-    }
-  </style>
+    <title>IOT Röle Kontrol</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
-<body>
+<body style="text-align: center; font-family: sans-serif;">
+    <h1>Röle Kontrol Paneli</h1>
+    <button onclick="degistir(true)" style="padding: 20px; background: green; color: white;">AÇ</button>
+    <button onclick="degistir(false)" style="padding: 20px; background: red; color: white;">KAPAT</button>
 
-  <h1>💡 NodeMCU LED Kontrol</h1>
+    <script>
+        // Firebase ayarların
+        const firebaseConfig = {
+            databaseURL: "https://console.firebase.google.com/project/iot-project-6a2c1/database/iot-project-6a2c1-default-rtdb/data/~2F" 
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-  <div class="container">
-    <button class="on" onclick="ledOn()">LED AÇ</button>
-    <button class="off" onclick="ledOff()">LED KAPAT</button>
-  </div>
-
-  <div class="status" id="status">Durum: Bilinmiyor</div>
-
-  <script>
-    const ip = "192.168.238.190"; // örn: 192.168.1.40
-
-    function ledOn() {
-      fetch(`http://${ip}/on`)
-        .then(() => {
-          document.getElementById("status").innerText = "Durum: LED AÇIK";
-        })
-        .catch(() => {
-          document.getElementById("status").innerText = "Bağlantı hatası";
-        });
-    }
-
-    function ledOff() {
-      fetch(`http://${ip}/off`)
-        .then(() => {
-          document.getElementById("status").innerText = "Durum: LED KAPALI";
-        })
-        .catch(() => {
-          document.getElementById("status").innerText = "Bağlantı hatası";
-        });
-    }
-  </script>
-
+        function degistir(durum) {
+            db.ref('/').update({ role_durumu: durum });
+        }
+    </script>
 </body>
 </html>
