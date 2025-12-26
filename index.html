@@ -1,26 +1,128 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-    <title>IOT Röle Kontrol</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akıllı Ev Paneli</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-</head>
-<body style="text-align: center; font-family: sans-serif;">
-    <h1>Röle Kontrol Paneli</h1>
-    <button onclick="degistir(true)" style="padding: 20px; background: green; color: white;">AÇ</button>
-    <button onclick="degistir(false)" style="padding: 20px; background: red; color: white;">KAPAT</button>
-
-    <script>
-        // Firebase ayarların
-        const firebaseConfig = {
-            databaseURL: "https://iot-project-6a2c1-default-rtdb.firebaseio.com/" 
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        function degistir(durum) {
-            db.ref('/').update({ role_durumu: durum });
+    
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --primary: #4f46e5;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --text: #1f2937;
         }
-    </script>
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        h1 { margin-bottom: 0.5rem; font-size: 1.5rem; }
+        p { color: #6b7280; margin-bottom: 2rem; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-on { background: #dcfce7; color: #166534; }
+        .status-off { background: #fee2e2; color: #991b1b; }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            color: white;
+        }
+
+        button:active { transform: scale(0.95); }
+
+        .btn-on { background-color: var(--success); }
+        .btn-off { background-color: var(--danger); }
+        
+        .footer { margin-top: 2rem; font-size: 0.7rem; color: #9ca3af; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Smart Control</h1>
+    <p>NodeMCU Röle Sistemi</p>
+    
+    <div id="statusBadge" class="status-badge status-off">YÜKLENİYOR...</div>
+
+    <div class="btn-group">
+        <button class="btn-on" onclick="toggleRelay(true)">Cihazı Aç</button>
+        <button class="btn-off" onclick="toggleRelay(false)">Cihazı Kapat</button>
+    </div>
+
+    <div class="footer">Firebase Realtime Database ile bağlı</div>
+</div>
+
+<script>
+    // KENDİ BİLGİLERİNLE GÜNCELLE
+    const firebaseConfig = {
+        databaseURL: "iot-project-6a2c1-default-rtdb.firebaseio.com/" 
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Veri değişimini anlık izle ve arayüzü güncelle
+    const statusBadge = document.getElementById('statusBadge');
+    
+    db.ref('role_durumu').on('value', (snapshot) => {
+        const val = snapshot.val();
+        if(val === true) {
+            statusBadge.innerText = "SİSTEM: AÇIK";
+            statusBadge.className = "status-badge status-on";
+        } else {
+            statusBadge.innerText = "SİSTEM: KAPALI";
+            statusBadge.className = "status-badge status-off";
+        }
+    });
+
+    function toggleRelay(state) {
+        db.ref('/').update({ role_durumu: state })
+          .then(() => console.log("Komut gönderildi: " + state))
+          .catch((error) => alert("Hata: " + error.message));
+    }
+</script>
+
 </body>
 </html>
