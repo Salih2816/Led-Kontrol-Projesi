@@ -3,117 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Akıllı Ev Paneli</title>
+    <title>Akıllı Cihaz Kontrol Paneli</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --bg-color: #f0f2f5;
-            --card-bg: #ffffff;
-            --primary: #4f46e5;
-            --success: #22c55e;
-            --danger: #ef4444;
-            --text: #1f2937;
+            --dark-bg: #1a1a2e;
+            --card-bg: rgba(255, 255, 255, 0.05); /* Yarı şeffaf */
+            --text-light: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --btn-on-color: #38bdf8; /* Sky Blue */
+            --btn-off-color: #f87171; /* Red-Orange */
+            --status-on-bg: rgba(52, 211, 153, 0.2); /* Green with alpha */
+            --status-on-text: #6ee7b7; /* Lighter Green */
+            --status-off-bg: rgba(251, 113, 133, 0.2); /* Red with alpha */
+            --status-off-text: #fbcfe8; /* Lighter Red */
+            --blur-strength: 10px;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text);
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: var(--text-light);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            overflow: hidden; /* Blur için */
+            position: relative;
+        }
+
+        /* Arkaplan Blur efekti */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50px; left: -50px; right: -50px; bottom: -50px;
+            background: inherit;
+            filter: blur(var(--blur-strength));
+            z-index: -1;
         }
 
         .container {
             background: var(--card-bg);
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            backdrop-filter: blur(var(--blur-strength)); /* Kartın kendi blur efekti */
+            -webkit-backdrop-filter: blur(var(--blur-strength)); /* Safari desteği */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
             text-align: center;
             width: 90%;
-            max-width: 400px;
+            max-width: 450px;
+            animation: fadeIn 1s ease-out;
         }
 
-        h1 { margin-bottom: 0.5rem; font-size: 1.5rem; }
-        p { color: #6b7280; margin-bottom: 2rem; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 { 
+            margin-bottom: 0.8rem; 
+            font-size: 2.2rem; 
+            font-weight: 700;
+            color: var(--btn-on-color); /* Başlık rengi */
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+        }
+        p { 
+            color: var(--text-muted); 
+            margin-bottom: 2.5rem; 
+            font-size: 1.1rem;
+        }
+
+        .status-wrapper {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-icon {
+            font-size: 1.5rem;
+        }
 
         .status-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
         }
 
-        .status-on { background: #dcfce7; color: #166534; }
-        .status-off { background: #fee2e2; color: #991b1b; }
+        .status-on .status-icon { color: var(--status-on-text); }
+        .status-on .status-badge { color: var(--status-on-text); }
+        .status-wrapper.status-on { background: var(--status-on-bg); }
+
+        .status-off .status-icon { color: var(--status-off-text); }
+        .status-off .status-badge { color: var(--status-off-text); }
+        .status-wrapper.status-off { background: var(--status-off-bg); }
 
         .btn-group {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 20px;
         }
 
         button {
             border: none;
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 1rem;
+            padding: 18px;
+            border-radius: 18px;
+            font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, opacity 0.2s;
-            color: white;
+            transition: all 0.3s ease;
+            color: var(--text-light);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
         }
 
-        button:active { transform: scale(0.95); }
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            transition: all 0.6s ease;
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            z-index: 0;
+        }
 
-        .btn-on { background-color: var(--success); }
-        .btn-off { background-color: var(--danger); }
+        button:hover::before {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .btn-on { 
+            background: linear-gradient(45deg, var(--btn-on-color), #22d3ee); 
+            text-shadow: 0 0 5px rgba(255,255,255,0.4);
+        }
+        .btn-off { 
+            background: linear-gradient(45deg, var(--btn-off-color), #fda4af); 
+            text-shadow: 0 0 5px rgba(255,255,255,0.4);
+        }
         
-        .footer { margin-top: 2rem; font-size: 0.7rem; color: #9ca3af; }
+        .footer { 
+            margin-top: 3rem; 
+            font-size: 0.8rem; 
+            color: var(--text-muted); 
+            opacity: 0.7;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Smart Control</h1>
-    <p>NodeMCU Röle Sistemi</p>
+    <h1>Akıllı Röle Kontrol</h1>
+    <p>Cihazınızın durumunu buradan yönetin.</p>
     
-    <div id="statusBadge" class="status-badge status-off">YÜKLENİYOR...</div>
-
-    <div class="btn-group">
-        <button class="btn-on" onclick="toggleRelay(true)">Cihazı Aç</button>
-        <button class="btn-off" onclick="toggleRelay(false)">Cihazı Kapat</button>
+    <div id="statusWrapper" class="status-wrapper status-off">
+        <span id="statusIcon" class="status-icon"></span>
+        <span id="statusBadge" class="status-badge">YÜKLENİYOR...</span>
     </div>
 
-    <div class="footer">Firebase Realtime Database ile bağlı</div>
+    <div class="btn-group">
+        <button class="btn-on" onclick="toggleRelay(true)">Cihazı AÇ</button>
+        <button class="btn-off" onclick="toggleRelay(false)">Cihazı KAPAT</button>
+    </div>
+
+    <div class="footer">
+        Powered by Firebase & NodeMCU <br> © 2024
+    </div>
 </div>
 
 <script>
-    // KENDİ BİLGİLERİNLE GÜNCELLE
+    // 🔥 KENDİ FIREBASE BİLGİLERİNLE GÜNCELLE 🔥
     const firebaseConfig = {
-        databaseURL: "iot-project-6a2c1-default-rtdb.firebaseio.com/" 
+        databaseURL: "https://iot-project-6a2c1-default-rtdb.firebaseio.com/" // Senin Firebase URL'in buraya gelecek
     };
     
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Veri değişimini anlık izle ve arayüzü güncelle
+    const statusWrapper = document.getElementById('statusWrapper');
+    const statusIcon = document.getElementById('statusIcon');
     const statusBadge = document.getElementById('statusBadge');
     
     db.ref('role_durumu').on('value', (snapshot) => {
         const val = snapshot.val();
         if(val === true) {
-            statusBadge.innerText = "SİSTEM: AÇIK";
-            statusBadge.className = "status-badge status-on";
+            statusBadge.innerText = "AKTİF";
+            statusIcon.innerText = "⚡"; // Açık iken şimşek ikonu
+            statusWrapper.className = "status-wrapper status-on";
         } else {
-            statusBadge.innerText = "SİSTEM: KAPALI";
-            statusBadge.className = "status-badge status-off";
+            statusBadge.innerText = "PASİF";
+            statusIcon.innerText = "◯"; // Kapalı iken daire ikonu
+            statusWrapper.className = "status-wrapper status-off";
         }
     });
 
