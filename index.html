@@ -87,6 +87,7 @@
             justify-content: center;
             align-items: center;
             gap: 10px;
+            transition: all 0.5s ease;
         }
 
         .status-icon {
@@ -100,11 +101,11 @@
 
         .status-on .status-icon { color: var(--status-on-text); }
         .status-on .status-badge { color: var(--status-on-text); }
-        .status-wrapper.status-on { background: var(--status-on-bg); }
+        .status-wrapper.status-on { background: var(--status-on-bg); border: 1px solid var(--status-on-text); }
 
         .status-off .status-icon { color: var(--status-off-text); }
         .status-off .status-badge { color: var(--status-off-text); }
-        .status-wrapper.status-off { background: var(--status-off-bg); }
+        .status-wrapper.status-off { background: var(--status-off-bg); border: 1px solid var(--status-off-text); }
 
         .btn-group {
             display: grid;
@@ -171,8 +172,9 @@
 <body>
 
 <div class="container">
-    <h1>Akıllı Röle Kontrol</h1>
-    <p>Cihazınızın durumunu buradan yönetin.</p>
+    <div style="font-size: 0.7rem; color: var(--btn-on-color); letter-spacing: 2px; margin-bottom: 5px; font-weight: bold;">SALİH SARIAYDIN</div>
+    <h1>Akıllı Lamba Kontrolü</h1>
+    <p>Uzaktan Wifi İle Lamba Kontrolü</p>
     
     <div id="statusWrapper" class="status-wrapper status-off">
         <span id="statusIcon" class="status-icon"></span>
@@ -180,19 +182,18 @@
     </div>
 
     <div class="btn-group">
-        <button class="btn-on" onclick="toggleRelay(true)">Cihazı AÇ</button>
-        <button class="btn-off" onclick="toggleRelay(false)">Cihazı KAPAT</button>
+        <button class="btn-on" onclick="toggleRelay(true)">Sistemi AÇ</button>
+        <button class="btn-off" onclick="toggleRelay(false)">Sistemi KAPAT</button>
     </div>
 
     <div class="footer">
-        Powered by Firebase & NodeMCU <br> © 2024
+        Cihaz Onayı: <span id="feedbackStatus">Bekleniyor...</span>
     </div>
 </div>
 
 <script>
-    // 🔥 KENDİ FIREBASE BİLGİLERİNLE GÜNCELLE 🔥
     const firebaseConfig = {
-        databaseURL: "https://iot-project-6a2c1-default-rtdb.firebaseio.com/" // Senin Firebase URL'in buraya gelecek
+        databaseURL: "https://iot-project-6a2c1-default-rtdb.firebaseio.com/" 
     };
     
     firebase.initializeApp(firebaseConfig);
@@ -201,24 +202,30 @@
     const statusWrapper = document.getElementById('statusWrapper');
     const statusIcon = document.getElementById('statusIcon');
     const statusBadge = document.getElementById('statusBadge');
+    const feedbackStatus = document.getElementById('feedbackStatus');
     
-    db.ref('role_durumu').on('value', (snapshot) => {
+    // 🔥 GERÇEK FEEDBACK KODU: Sadece NodeMCU'dan gelen 'gercek_durum'u izler
+    db.ref('gercek_durum').on('value', (snapshot) => {
         const val = snapshot.val();
         if(val === true) {
-            statusBadge.innerText = "AKTİF";
-            statusIcon.innerText = "⚡"; // Açık iken şimşek ikonu
+            statusBadge.innerText = "SİSTEM AKTİF";
+            statusIcon.innerText = "⚡"; 
             statusWrapper.className = "status-wrapper status-on";
+            feedbackStatus.innerText = "RÖLE ÇEKTİ ✅";
         } else {
-            statusBadge.innerText = "PASİF";
-            statusIcon.innerText = "◯"; // Kapalı iken daire ikonu
+            statusBadge.innerText = "SİSTEM PASİF";
+            statusIcon.innerText = "◯"; 
             statusWrapper.className = "status-wrapper status-off";
+            feedbackStatus.innerText = "RÖLE DURDU ❌";
         }
     });
 
     function toggleRelay(state) {
-        db.ref('/').update({ role_durumu: state })
-          .then(() => console.log("Komut gönderildi: " + state))
-          .catch((error) => alert("Hata: " + error.message));
+        // Butona basınca sadece 'role_komut' gönderilir. 
+        // Ekranda değişiklik olması için NodeMCU'nun bu komutu alıp 'gercek_durum'u güncellemesi gerekir.
+        db.ref('/').update({ role_komut: state })
+          .then(() => console.log("Komut gönderildi, onay bekleniyor..."))
+          .catch((error) => alert("Bağlantı Hatası: " + error.message));
     }
 </script>
 
